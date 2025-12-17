@@ -1,28 +1,130 @@
+# =============================================================================
+# FOR PRODUCTION: To use real AWS S3 instead of MinIO:
+# 
+# 1. Remove/comment the 'minio' and 'minio-init' services below
+# 2. Update loki.yml, tempo.yml, mimir.yml with real S3 credentials:
+#
+#    storage:
+#      aws:
+#        endpoint: s3.amazonaws.com       # or s3.eu-west-1.amazonaws.com
+#        region: us-east-1
+#        bucket: my-observability-bucket
+#        access_key_id: AKIAXXXXXXXX
+#        secret_access_key: xxxxxxxxxxxxx
+#        # insecure: false                # remove this line for real S3
+#        # s3forcepathstyle: false        # remove this line for real S3
+#
+# 3. Remove 'depends_on: minio-init' from loki, tempo, mimir services
+# =============================================================================
+
 services:
+  # MinIO - S3-compatible storage (LOCAL DEV ONLY)
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    volumes:
+      - ./minio-data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - observability-network
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Create buckets on startup
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set myminio http://minio:9000 minioadmin minioadmin;
+      mc mb myminio/loki --ignore-existing;
+      mc mb myminio/tempo --ignore-existing;
+      mc mb myminio/mimir --ignore-existing;
+      exit 0;
+      "
+    networks:
+      - observability-network
+
   api:
     build: .
     ports:
       - "8000:8000"
     volumes:
       - ./logs:/app/logs
-    networks:
-      - observability-network
-
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./prometheus-data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
     networks:
       - observability-network
     depends_on:
-      - api
+      - tempo
+      - mimir
+
+  # Mimir - replaces Prometheus for metrics with S3 storage
+  mimir:
+    image: grafana/mimir:latest
+    container_name: mimir
+    ports:
+      - "9009:9009"
+    volumes:
+      - ./mimir.yml:/etc/mimir/mimir.yml
+    command: -config.file=/etc/mimir/mimir.yml
+    networks:
+      - observability-network
+    depends_on:
+      minio-init:
+        condition: service_completed_successfully
+
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki.yml:/etc/loki/loki.yml
+    command: -config.file=/etc/loki/loki.yml
+    networks:
+      - observability-network
+    depends_on:
+      minio-init:
+        condition: service_completed_successfully
+
+  tempo:
+    image: grafana/tempo:latest
+    container_name: tempo
+    ports:
+      - "4317:4317"
+      - "3200:3200"
+    volumes:
+      - ./tempo.yml:/etc/tempo/tempo.yml
+    command: -config.file=/etc/tempo/tempo.yml
+    networks:
+      - observability-network
+    depends_on:
+      minio-init:
+        condition: service_completed_successfully
+
+  alloy:
+    image: grafana/alloy:latest
+    container_name: alloy
+    volumes:
+      - ./alloy/config.alloy:/etc/alloy/config.alloy
+      - ./logs:/var/log/app:ro
+    command: run /etc/alloy/config.alloy
+    networks:
+      - observability-network
+    depends_on:
+      - loki
 
   grafana:
     image: grafana/grafana:latest
@@ -38,7 +140,9 @@ services:
     networks:
       - observability-network
     depends_on:
-      - prometheus
+      - mimir
+      - loki
+      - tempo
 
 networks:
   observability-network:

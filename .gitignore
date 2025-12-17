@@ -35,3 +35,6 @@ Thumbs.db
 
 grafana-data/
 prometheus-data/
+loki-data/
+tempo-data/
+minio-data/

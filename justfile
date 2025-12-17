@@ -30,7 +30,7 @@ restart:
 # Stop and remove all data
 clean:
     docker-compose down -v
-    find logs grafana-data prometheus-data -mindepth 1 ! -name ".gitkeep" -exec rm -rf {} + 2>/dev/null || true
+    find logs grafana-data minio-data -mindepth 1 ! -name ".gitkeep" -exec rm -rf {} + 2>/dev/null || true
     rm -rf .ruff_cache/
     find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 

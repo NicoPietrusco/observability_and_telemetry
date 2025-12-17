@@ -11,6 +11,7 @@ dependencies = [
     "opentelemetry-api>=1.27.0",
     "opentelemetry-sdk>=1.27.0",
     "opentelemetry-instrumentation-fastapi>=0.48b0",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.27.0",
     "ruff>=0.14.9",
     "prometheus-fastapi-instrumentator>=7.1.0",
 ]
