@@ -1,0 +1,16 @@
+[project]
+name = "observability-and-telemetry"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.124.4",
+    "loguru>=0.7.3",
+    "uvicorn>=0.38.0",
+    "opentelemetry-api>=1.27.0",
+    "opentelemetry-sdk>=1.27.0",
+    "opentelemetry-instrumentation-fastapi>=0.48b0",
+    "ruff>=0.14.9",
+    "prometheus-fastapi-instrumentator>=7.1.0",
+]
