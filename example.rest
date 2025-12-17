@@ -1,0 +1,26 @@
+### Endpoint 1 - Success case (positive value)
+GET http://localhost:8000/end1/25
+
+### Endpoint 1 - Success case (decimal value)
+GET http://localhost:8000/end1/16.5
+
+### Endpoint 1 - Error case (negative value - should return 400)
+GET http://localhost:8000/end1/-5
+
+### Endpoint 2 - Success case
+GET http://localhost:8000/end2/?text=HelloWorld
+
+### Endpoint 2 - Success case (with spaces)
+GET http://localhost:8000/end2/?text=Test%20String
+
+### Endpoint 2 - Error case (empty text - should return 400)
+GET http://localhost:8000/end2/?text=
+
+### Prometheus Metrics
+GET http://localhost:8000/metrics
+
+### API Documentation
+GET http://localhost:8000/docs
+
+### OpenAPI Schema
+GET http://localhost:8000/openapi.json
