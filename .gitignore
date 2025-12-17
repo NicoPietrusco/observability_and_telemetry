@@ -32,3 +32,6 @@ Thumbs.db
 
 # Python version
 .python-version
+
+grafana-data/
+prometheus-data/
