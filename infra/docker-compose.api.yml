@@ -1,0 +1,30 @@
+services:
+  # API unit (cloud-like): application + local Alloy agent (sidecar)
+  api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../var/logs:/app/logs
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
+      - LOG_DIR=/app/logs
+    networks:
+      - observability-network
+
+  alloy:
+    image: grafana/alloy:latest
+    volumes:
+      - ./alloy/config.alloy:/etc/alloy/config.alloy
+      - ../var/logs:/var/log/app:ro
+    command: run /etc/alloy/config.alloy
+    networks:
+      - observability-network
+
+networks:
+  observability-network:
+    name: observability-network
+    external: true
+

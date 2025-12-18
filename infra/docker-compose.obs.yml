@@ -1,29 +1,12 @@
-# =============================================================================
-# FOR PRODUCTION: To use real AWS S3 instead of MinIO:
-# 
-# 1. Remove/comment the 'minio' and 'minio-init' services below
-# 2. Update loki.yml, tempo.yml, mimir.yml with real S3 credentials:
-#
-#    storage:
-#      aws:
-#        endpoint: s3.amazonaws.com       # or s3.eu-west-1.amazonaws.com
-#        region: us-east-1
-#        bucket: my-observability-bucket
-#        access_key_id: AKIAXXXXXXXX
-#        secret_access_key: xxxxxxxxxxxxx
-#        # insecure: false                # remove this line for real S3
-#        # s3forcepathstyle: false        # remove this line for real S3
-#
-# 3. Remove 'depends_on: minio-init' from loki, tempo, mimir services
-# =============================================================================
-
 services:
-  # MinIO - S3-compatible storage (LOCAL DEV ONLY)
+  # Observability unit (cloud-like): backends + UI + storage
+
+  # MinIO stands in for S3 in local dev. In cloud, swap this for real S3 and
+  # update infra/config/{loki,tempo,mimir}.yml accordingly.
   minio:
     image: minio/minio:latest
-    container_name: minio
     ports:
-      - "9000:9000"
+      # S3 API stays internal on the docker network; expose console only if needed.
       - "9001:9001"
     environment:
       - MINIO_ROOT_USER=minioadmin
@@ -39,7 +22,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # Create buckets on startup
   minio-init:
     image: minio/mc:latest
     depends_on:
@@ -56,29 +38,8 @@ services:
     networks:
       - observability-network
 
-  api:
-    build:
-      context: ..
-      dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
-    volumes:
-      - ../var/logs:/app/logs
-    environment:
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
-      - LOG_DIR=/app/logs
-    networks:
-      - observability-network
-    depends_on:
-      - tempo
-      - mimir
-
-  # Mimir - replaces Prometheus for metrics with S3 storage
   mimir:
     image: grafana/mimir:latest
-    container_name: mimir
-    ports:
-      - "9009:9009"
     volumes:
       - ./config/mimir.yml:/etc/mimir/mimir.yml
     command: -config.file=/etc/mimir/mimir.yml
@@ -90,9 +51,6 @@ services:
 
   loki:
     image: grafana/loki:latest
-    container_name: loki
-    ports:
-      - "3100:3100"
     volumes:
       - ./config/loki.yml:/etc/loki/loki.yml
     command: -config.file=/etc/loki/loki.yml
@@ -104,10 +62,6 @@ services:
 
   tempo:
     image: grafana/tempo:latest
-    container_name: tempo
-    ports:
-      - "4317:4317"
-      - "3200:3200"
     volumes:
       - ./config/tempo.yml:/etc/tempo/tempo.yml
     command: -config.file=/etc/tempo/tempo.yml
@@ -117,21 +71,8 @@ services:
       minio-init:
         condition: service_completed_successfully
 
-  alloy:
-    image: grafana/alloy:latest
-    container_name: alloy
-    volumes:
-      - ./alloy/config.alloy:/etc/alloy/config.alloy
-      - ../var/logs:/var/log/app:ro
-    command: run /etc/alloy/config.alloy
-    networks:
-      - observability-network
-    depends_on:
-      - loki
-
   grafana:
     image: grafana/grafana:latest
-    container_name: grafana
     ports:
       - "3000:3000"
     volumes:
@@ -149,4 +90,6 @@ services:
 
 networks:
   observability-network:
-    driver: bridge
+    name: observability-network
+    external: true
+
