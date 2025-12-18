@@ -7,30 +7,30 @@ default:
 # Run the API locally
 run:
     uv sync
-    uv run uvicorn src.api:app --host 0.0.0.0 --port 8000 --reload
+    uv run uvicorn app.api:app --host 0.0.0.0 --port 8000 --reload
 
 # Start all services (detached)
 up:
-    docker-compose up -d
+    docker-compose -f infra/docker-compose.yml up -d
 
 # Stop all services
 down:
-    docker-compose down
+    docker-compose -f infra/docker-compose.yml down
 
 # View logs (all services)
 logs *args:
-    docker-compose logs -f {{ args }}
+    docker-compose -f infra/docker-compose.yml logs -f {{ args }}
 
 # Rebuild and restart everything
 restart:
-    docker-compose down
-    docker-compose build
-    docker-compose up -d
+    docker-compose -f infra/docker-compose.yml down
+    docker-compose -f infra/docker-compose.yml build
+    docker-compose -f infra/docker-compose.yml up -d
 
 # Stop and remove all data
 clean:
-    docker-compose down -v
-    find logs grafana-data minio-data -mindepth 1 ! -name ".gitkeep" -exec rm -rf {} + 2>/dev/null || true
+    docker-compose -f infra/docker-compose.yml down -v
+    find var/logs var/grafana var/minio -mindepth 1 ! -name ".gitkeep" -exec rm -rf {} + 2>/dev/null || true
     rm -rf .ruff_cache/
     find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 

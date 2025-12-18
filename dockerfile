@@ -11,14 +11,14 @@ COPY pyproject.toml uv.lock .python-version ./
 # Create venv and install deps from lockfile
 RUN uv sync --frozen
 
-# Copy app code (FastAPI lives in src/)
-COPY src ./src
+# Copy app code (FastAPI lives in app/)
+COPY app ./app
 
-# Ensure logs dir exists in container
+# Ensure logs dirs exist in container (compose bind-mounts host logs into /app/logs)
 RUN mkdir -p /app/logs
 
 EXPOSE 8000
 
 # Run using the venv created by uv (./.venv)
-CMD ["./.venv/bin/uvicorn", "src.api:app", "--host", "0.0.0.0", "--port",  "8000"]
+CMD ["./.venv/bin/uvicorn", "app.api:app", "--host", "0.0.0.0", "--port",  "8000"]
 

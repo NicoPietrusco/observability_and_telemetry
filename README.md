@@ -8,7 +8,7 @@ A demo project showcasing the three pillars of observability: **metrics**, **log
 flowchart LR
     subgraph APP[Application]
         API[FastAPI<br/>:8000]
-        LogFile[logs/app.log]
+        LogFile[var/logs/app.log]
     end
 
     subgraph COLLECT[Collection]
@@ -68,13 +68,13 @@ flowchart LR
 
 | Service | Reads From | Writes To | Description |
 |---------|------------|-----------|-------------|
-| **API** | - | `logs/app.log`, Tempo (OTLP) | FastAPI app instrumented with OpenTelemetry. Exposes `/metrics` endpoint. |
-| **Alloy** | API `/metrics`, `logs/app.log` | Mimir, Loki | Telemetry collector. Scrapes metrics and tails logs, forwards to backends. |
+| **API** | - | `var/logs/app.log`, Tempo (OTLP) | FastAPI app instrumented with OpenTelemetry. Exposes `/metrics` endpoint. |
+| **Alloy** | API `/metrics`, `var/logs/app.log` | Mimir, Loki | Telemetry collector. Scrapes metrics and tails logs, forwards to backends. |
 | **Mimir** | Alloy (remote write) | MinIO `mimir/` bucket | Metrics database. Like Prometheus but with S3 storage and horizontal scaling. |
 | **Loki** | Alloy (push) | MinIO `loki/` bucket | Log aggregation. Indexes by labels, stores in S3. "Prometheus for logs". |
 | **Tempo** | API (OTLP traces) | MinIO `tempo/` bucket | Distributed tracing backend. Receives spans via OTLP, stores in S3. |
-| **MinIO** | - | `./minio-data/` | S3-compatible storage. Replace with AWS S3 in production. |
-| **Grafana** | Mimir, Loki, Tempo (APIs) | `./grafana-data/` | Visualization. Queries all backends, correlates via `trace_id`. |
+| **MinIO** | - | `./var/minio/` | S3-compatible storage. Replace with AWS S3 in production. |
+| **Grafana** | Mimir, Loki, Tempo (APIs) | `./var/grafana/` | Visualization. Queries all backends, correlates via `trace_id`. |
 
 ## Quick Start
 
@@ -121,7 +121,7 @@ Access MinIO Console at http://localhost:9001 to browse buckets.
 
 ## Log Rotation
 
-The API uses Loguru with built-in log rotation to prevent `logs/app.log` from growing forever:
+The API uses Loguru with built-in log rotation to prevent `var/logs/app.log` from growing forever:
 
 | Setting | Value | Description |
 |---------|-------|-------------|
@@ -131,7 +131,7 @@ The API uses Loguru with built-in log rotation to prevent `logs/app.log` from gr
 
 Rotated logs are stored as:
 ```
-logs/
+var/logs/
 ├── app.log                     # Current log (tailed by Alloy)
 ├── app.log.2024-12-17_12-00-00.gz  # Rotated + compressed
 ├── app.log.2024-12-16_12-00-00.gz

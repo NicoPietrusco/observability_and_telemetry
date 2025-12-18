@@ -29,7 +29,7 @@ services:
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadmin
     volumes:
-      - ./minio-data:/data
+      - ../var/minio:/data
     command: server /data --console-address ":9001"
     networks:
       - observability-network
@@ -57,13 +57,16 @@ services:
       - observability-network
 
   api:
-    build: .
+    build:
+      context: ..
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     volumes:
-      - ./logs:/app/logs
+      - ../var/logs:/app/logs
     environment:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
+      - LOG_DIR=/app/logs
     networks:
       - observability-network
     depends_on:
@@ -77,7 +80,7 @@ services:
     ports:
       - "9009:9009"
     volumes:
-      - ./mimir.yml:/etc/mimir/mimir.yml
+      - ./config/mimir.yml:/etc/mimir/mimir.yml
     command: -config.file=/etc/mimir/mimir.yml
     networks:
       - observability-network
@@ -91,7 +94,7 @@ services:
     ports:
       - "3100:3100"
     volumes:
-      - ./loki.yml:/etc/loki/loki.yml
+      - ./config/loki.yml:/etc/loki/loki.yml
     command: -config.file=/etc/loki/loki.yml
     networks:
       - observability-network
@@ -106,7 +109,7 @@ services:
       - "4317:4317"
       - "3200:3200"
     volumes:
-      - ./tempo.yml:/etc/tempo/tempo.yml
+      - ./config/tempo.yml:/etc/tempo/tempo.yml
     command: -config.file=/etc/tempo/tempo.yml
     networks:
       - observability-network
@@ -119,7 +122,7 @@ services:
     container_name: alloy
     volumes:
       - ./alloy/config.alloy:/etc/alloy/config.alloy
-      - ./logs:/var/log/app:ro
+      - ../var/logs:/var/log/app:ro
     command: run /etc/alloy/config.alloy
     networks:
       - observability-network
@@ -132,7 +135,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./grafana-data:/var/lib/grafana
+      - ../var/grafana:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
     environment:
       - GF_SECURITY_ADMIN_USER=admin

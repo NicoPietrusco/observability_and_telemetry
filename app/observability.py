@@ -1,6 +1,7 @@
-# src/observability.py
 import os
 import sys
+from pathlib import Path
+
 from loguru import logger
 
 from opentelemetry import trace
@@ -27,9 +28,14 @@ def setup_tracing() -> None:
 def setup_logging() -> None:
     logger.remove()
 
+    # Where to store the local log file. In docker-compose we set LOG_DIR=/app/logs
+    # and bind-mount host ./var/logs there so Alloy can tail the same files.
+    log_dir = os.getenv("LOG_DIR", "var/logs")
+    Path(log_dir).mkdir(parents=True, exist_ok=True)
+
     # JSON logs to file with rotation
     logger.add(
-        "logs/app.log",
+        str(Path(log_dir) / "app.log"),
         serialize=True,
         level="INFO",
         rotation="10 MB",  # Rotate when file reaches 10MB
