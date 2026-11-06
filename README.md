@@ -1,6 +1,23 @@
 # Observability and Telemetry Demo
 
+[![CI](https://github.com/NicoPietrusco/observability_and_telemetry/actions/workflows/ci.yml/badge.svg)](https://github.com/NicoPietrusco/observability_and_telemetry/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-425CC7?logo=opentelemetry&logoColor=white)
+![Grafana](https://img.shields.io/badge/Grafana-F46800?logo=grafana&logoColor=white)
+![Loki](https://img.shields.io/badge/Loki-logs-F46800?logo=grafana&logoColor=white)
+![Tempo](https://img.shields.io/badge/Tempo-traces-F46800?logo=grafana&logoColor=white)
+![Mimir](https://img.shields.io/badge/Mimir-metrics-F46800?logo=grafana&logoColor=white)
+![MinIO](https://img.shields.io/badge/MinIO-S3-C72E49?logo=minio&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker_Compose-2496ED?logo=docker&logoColor=white)
+[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+
 A demo project showcasing the three pillars of observability: **metrics**, **logs**, and **traces** — with S3-compatible storage.
+
+A FastAPI service instrumented with OpenTelemetry ships its telemetry to the Grafana LGTM stack (Loki, Grafana, Tempo, Mimir), with MinIO standing in for S3. One command brings it all up, and Grafana links every log line to its trace.
+
+**Contents:** [Architecture](#architecture) · [Cloud architecture](#cloud-architecture-prototype) · [Services](#services) · [Quick Start](#quick-start) · [Endpoints](#endpoints) · [S3 Storage](#s3-storage) · [Features](#features) · [Log Rotation](#log-rotation) · [CI](#ci)
 
 ## Architecture
 
@@ -137,9 +154,15 @@ docker compose -f infra/docker-compose.api.yml up -d
 
 ## Quick Start
 
+**Prerequisites:** [Docker](https://docs.docker.com/get-docker/) with Compose, [just](https://github.com/casey/just), and [uv](https://github.com/astral-sh/uv) to run the API outside Docker.
+
 ```bash
 # Start the stack (two units: observability + api)
 just up
+
+# Generate some traffic (or use examples/example.rest)
+curl http://localhost:8000/end1/25
+curl "http://localhost:8000/end2/?text=HelloWorld"
 
 # View logs
 just logs
@@ -198,3 +221,14 @@ var/logs/
 ```
 
 > **Note:** Old logs are kept locally for 7 days as backup. The canonical log storage is in Loki (S3), which has its own retention policy.
+
+## CI
+
+[GitHub Actions](.github/workflows/ci.yml) runs on every push to `master` and on every pull request:
+
+| Job | What it checks |
+|-----|----------------|
+| **Lint** | `uv.lock` is up to date, `ruff check` and `ruff format --check` pass |
+| **Docker** | Both compose files are valid, the API image builds, and a smoke test calls `/end1`, `/end2` and `/metrics` on the running container |
+
+Format and lint locally with `just fmt`.

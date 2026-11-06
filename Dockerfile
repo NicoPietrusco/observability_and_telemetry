@@ -6,7 +6,7 @@ WORKDIR /app
 RUN pip install --no-cache-dir uv
 
 # Copy only dependency files first (better Docker cache)
-COPY pyproject.toml uv.lock .python-version ./
+COPY pyproject.toml uv.lock ./
 
 # Create venv and install deps from lockfile
 RUN uv sync --frozen

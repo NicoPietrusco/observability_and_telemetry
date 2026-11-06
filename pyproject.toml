@@ -1,7 +1,7 @@
 [project]
 name = "observability-and-telemetry"
 version = "0.1.0"
-description = "Add your description here"
+description = "Demo of the three pillars of observability (metrics, logs, traces) with FastAPI, OpenTelemetry and the Grafana LGTM stack on S3-compatible storage"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

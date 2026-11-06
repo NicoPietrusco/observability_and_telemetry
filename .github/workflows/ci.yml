@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Check lockfile is up to date
+        run: uv lock --check
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Ruff lint
+        run: uv run ruff check --output-format=github .
+
+      - name: Ruff format
+        run: uv run ruff format --check .
+
+  docker:
+    name: Docker build and smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Validate compose files
+        run: |
+          docker compose -f infra/docker-compose.obs.yml config -q
+          docker compose -f infra/docker-compose.api.yml config -q
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: telemetry-demo:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke test API
+        run: |
+          docker run -d --name api -p 8000:8000 telemetry-demo:ci
+          for _ in $(seq 1 30); do
+            curl -sf http://localhost:8000/metrics > /dev/null && break
+            sleep 1
+          done
+          curl -sf http://localhost:8000/end1/25 | grep -q '"root":5.0'
+          curl -sf "http://localhost:8000/end2/?text=HelloWorld" > /dev/null
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8000/end1/-5)" = "400"
+          curl -sf http://localhost:8000/metrics | grep -q http_requests_total
+
+      - name: Show API logs
+        if: always()
+        run: docker logs api || true
