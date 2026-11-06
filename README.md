@@ -232,3 +232,5 @@ var/logs/
 | **Docker** | Both compose files are valid, the API image builds, and a smoke test calls `/end1`, `/end2` and `/metrics` on the running container |
 
 Format and lint locally with `just fmt`.
+
+[Dependabot](.github/dependabot.yml) opens grouped update PRs once a month for GitHub Actions, Python dependencies (`uv.lock`) and the `Dockerfile` base image.
