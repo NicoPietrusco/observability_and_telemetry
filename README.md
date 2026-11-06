@@ -228,9 +228,12 @@ var/logs/
 uv sync     # Create the venv with the API and the development tools
 just hooks  # Install the git hooks, once
 just check  # Run every hook on all files, as CI does
+just test   # Run the tests
 ```
 
 From then on, every commit runs the hooks on the files it changes: trailing whitespace, final newlines, YAML and TOML syntax, ruff lint and format, the `uv.lock` check and the [zizmor](https://github.com/zizmorcore/zizmor) workflow audit. Hooks that fix files themselves, such as the formatter, stop the commit so you can review the changes and stage them again. `just fmt` formats and lints the code on its own.
+
+The tests in `tests/` mirror `app/`, with one `*_test.py` per module. They call the API through FastAPI's `TestClient` and check the responses, the spans each request records and the structured request logs, with no collector running. `just coverage` also writes an HTML coverage report to `htmlcov/`.
 
 PRs are squash-merged, so the PR title becomes the commit message on `master` and must be a [Conventional Commit](https://www.conventionalcommits.org/), for example `feat: add a Grafana dashboard`.
 
@@ -241,6 +244,7 @@ PRs are squash-merged, so the PR title becomes the commit message on `master` an
 | Workflow | Job | What it checks |
 |----------|-----|----------------|
 | CI | **checks** | Every hook of `just check`, with zizmor's online audits |
+| CI | **tests** | `pytest --cov`, failing below the `fail_under` coverage threshold in `pyproject.toml` |
 | CI | **docker** | Both compose files are valid, the API image builds, and a smoke test calls `/end1`, `/end2` and `/metrics` on the running container |
 | PR title | **pr-title** | The PR title is a Conventional Commit |
 

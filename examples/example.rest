@@ -13,8 +13,11 @@ GET http://localhost:8000/end2/?text=HelloWorld
 ### Endpoint 2 - Success case (with spaces)
 GET http://localhost:8000/end2/?text=Test%20String
 
-### Endpoint 2 - Error case (empty text - should return 400)
+### Endpoint 2 - Error case (empty text - fails query validation with 422)
 GET http://localhost:8000/end2/?text=
+
+### Endpoint 2 - Error case (whitespace only - normalizes to empty, returns 400)
+GET http://localhost:8000/end2/?text=%20%20%20
 
 ### Prometheus Metrics
 GET http://localhost:8000/metrics
