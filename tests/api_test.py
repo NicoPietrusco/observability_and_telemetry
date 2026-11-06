@@ -12,7 +12,9 @@ def failing_route():
 
     app.add_api_route("/test-boom", boom)
     yield "/test-boom"
-    app.router.routes = [r for r in app.router.routes if getattr(r, "path", None) != "/test-boom"]
+    app.router.routes = [
+        r for r in app.router.routes if getattr(r, "path", None) != "/test-boom"
+    ]
 
 
 def request_logs(records, path):
@@ -49,7 +51,9 @@ def test_request_log_carries_the_trace_id(client, log_records):
     assert record["extra"]["trace_id"] == body["trace_id"]
 
 
-def test_unhandled_exception_returns_500_and_logs_error(client, log_records, failing_route):
+def test_unhandled_exception_returns_500_and_logs_error(
+    client, log_records, failing_route
+):
     response = client.get(failing_route)
 
     assert response.status_code == 500
