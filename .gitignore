@@ -34,6 +34,9 @@ Thumbs.db
 
 # Tooling caches
 .ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
 
 # Legacy/old volume paths (kept here in case they reappear)
 logs/

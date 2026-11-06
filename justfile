@@ -62,8 +62,16 @@ clean:
     COMPOSE_PROJECT_NAME=otel-api docker compose -f infra/docker-compose.api.yml down -v
     COMPOSE_PROJECT_NAME=otel-obs docker compose -f infra/docker-compose.obs.yml down -v
     find var/logs var/grafana var/minio -mindepth 1 ! -name ".gitkeep" -exec rm -rf {} + 2>/dev/null || true
-    rm -rf .ruff_cache/
+    rm -rf .ruff_cache/ .pytest_cache/ .coverage htmlcov/
     find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+
+# Run the tests
+test:
+    uv run --frozen pytest
+
+# Run the tests with coverage, as CI does, and write an HTML report to htmlcov/
+coverage:
+    uv run --frozen pytest --cov --cov-report=term-missing --cov-report=html
 
 # Format and lint code
 fmt:
