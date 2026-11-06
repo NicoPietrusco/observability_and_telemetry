@@ -1,0 +1,43 @@
+name: Bug report
+description: Report a reproducible problem with the demo stack.
+title: "[Bug]: "
+body:
+  - type: input
+    id: os
+    attributes:
+      label: Operating system and Docker version
+      description: Include the OS and the output of `docker compose version`.
+      placeholder: "e.g. macOS 15, Docker Compose v2.39.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Describe the steps that consistently reproduce the problem.
+      placeholder: |
+        1. Run `just up`
+        2. ...
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior
+      description: What did you expect to see, and what happened instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: |
+        Please include the relevant part of the logs, if available.
+        `just logs <service>` shows the logs of one service, for example `just logs loki`.
+      render: text
+    validations:
+      required: false

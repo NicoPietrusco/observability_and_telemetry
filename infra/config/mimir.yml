@@ -43,4 +43,3 @@ store_gateway:
 
 limits:
   native_histograms_ingestion_enabled: true
-
