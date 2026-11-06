@@ -92,4 +92,3 @@ networks:
   observability-network:
     name: observability-network
     external: true
-

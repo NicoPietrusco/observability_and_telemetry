@@ -1,7 +1,9 @@
 import asyncio
+
 from fastapi import APIRouter, HTTPException, Query
 from opentelemetry import trace
 from opentelemetry.trace import Status, StatusCode
+
 from ..observability import trace_context
 
 router = APIRouter()

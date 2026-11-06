@@ -68,3 +68,15 @@ clean:
 # Format and lint code
 fmt:
     uv run ruff format . && uv run ruff check --fix .
+
+# Install the git hooks, so every commit runs the `just check` hooks on its staged files
+hooks:
+    uv run --frozen prek install
+
+# Run every hook on all files, as CI does: lint, format, lock file, workflow audit
+check:
+    uv run --frozen prek run --all-files
+
+# Audit GitHub Actions workflows and Dependabot config for security issues
+lint-workflows:
+    uv run --frozen zizmor .github

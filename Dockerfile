@@ -6,10 +6,10 @@ WORKDIR /app
 RUN pip install --no-cache-dir uv
 
 # Copy only dependency files first (better Docker cache)
-COPY pyproject.toml uv.lock .python-version ./
+COPY pyproject.toml uv.lock ./
 
 # Create venv and install deps from lockfile
-RUN uv sync --frozen
+RUN uv sync --frozen --no-dev
 
 # Copy app code (FastAPI lives in app/)
 COPY app ./app
@@ -21,4 +21,3 @@ EXPOSE 8000
 
 # Run using the venv created by uv (./.venv)
 CMD ["./.venv/bin/uvicorn", "app.api:app", "--host", "0.0.0.0", "--port",  "8000"]
-

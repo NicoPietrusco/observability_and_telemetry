@@ -1,7 +1,7 @@
 [project]
 name = "observability-and-telemetry"
 version = "0.1.0"
-description = "Add your description here"
+description = "Demo of the three pillars of observability (metrics, logs, traces) with FastAPI, OpenTelemetry and the Grafana LGTM stack on S3-compatible storage"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -12,6 +12,19 @@ dependencies = [
     "opentelemetry-sdk>=1.27.0",
     "opentelemetry-instrumentation-fastapi>=0.48b0",
     "opentelemetry-exporter-otlp-proto-grpc>=1.27.0",
-    "ruff>=0.14.9",
     "prometheus-fastapi-instrumentator>=7.1.0",
 ]
+
+[dependency-groups]
+dev = [
+    "prek>=0.5.10",
+    "ruff>=0.14.9",
+    "zizmor>=1.32.0",
+]
+
+[tool.ruff]
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "B", "Q", "UP", "C4", "SIM"]
+ignore = ["E501"]  # Line too long (handled by formatter)

@@ -1,12 +1,13 @@
 import time
+
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from loguru import logger
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from prometheus_fastapi_instrumentator import Instrumentator
 
-from .observability import setup_logging, setup_tracing, trace_context, SERVICE_NAME
 from .endpoints import end1_router, end2_router
+from .observability import SERVICE_NAME, setup_logging, setup_tracing, trace_context
 
 setup_tracing()
 setup_logging()
